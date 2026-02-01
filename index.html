@@ -6,7 +6,32 @@
     <title>CBT System - Pro Edition</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script defer src="https://unpkg.com/mathlive"></script>
+<script>
+    // Konfigurasi global agar tidak ada popup/menu yang mengganggu
+    window.addEventListener('DOMContentLoaded', () => {
+        if (window.mathVirtualKeyboard) {
+            window.mathVirtualKeyboard.style.zIndex = "10000";
+        }
+    });
+</script>
     <style>
+	#mathEditorPanel { 
+    box-shadow: 0 -5px 15px rgba(0,0,0,5) !important; 
+}
+.ML__virtual-keyboard { 
+    z-index: 10000 !important; 
+}
+
+	/* Jika modal membuat background buram, kita pastikan math-field tetap tajam */
+	#mathInput {
+    	display: block;
+    	width: 100%;
+    	border: 1px solid #0d6efd;
+    	padding: 15px;
+    	font-size: 1.5rem;
+    	background: #fff !important;
+}
         body { background: #f8fafc; font-family: sans-serif; user-select: none; }
         .hidden { display: none !important; }
         .cbt-header { background: #fff; border-bottom: 3px solid #0d6efd; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -37,7 +62,7 @@
         <section id="pageReady" class="text-center py-5">
             <div class="py-5">
                 <h1 class="fw-bold text-dark mb-4">TRY OUT FULLSCREEN</h1>
-                <p class="text-muted mb-5">Pastikan koneksi internet stabil, baterai perangkat mencukupi, dan yang menjawab dengan AI = GAY.</p>
+                <p class="text-muted mb-5">That simple. 1+1=2. 11x11=121. 12x12=144. 8x8? 6x4. yg waras yah ga boleh dipelintir yang waras.</p>
                 <button class="btn btn-primary btn-ready" onclick="showSection('pageLogin')">READY</button>
             </div>
         </section>
@@ -90,20 +115,80 @@
             <div class="d-flex justify-content-between align-items-center mb-3"><h4 class="fw-bold m-0">Admin Panel</h4><button class="btn btn-danger btn-sm" onclick="location.reload()">Logout</button></div>
             <div class="card card-c p-4">
                 <div class="row g-2 mb-3"><div class="col-6"><select id="asMapel" class="form-select"></select></div><div class="col-6"><select id="asKelas" class="form-select"></select></div></div>
-                <textarea id="asQ" class="form-control" rows="2" oninput="livePv('asQ','pvQ')" placeholder="Soal..."></textarea>
-                <div id="pvQ" class="pv-box"></div>
-                <div class="row g-2 mt-2">
-                    <div class="col-6"><input id="asA" class="form-control" placeholder="A" oninput="livePv('asA','pvA')"><div id="pvA" class="pv-box"></div></div>
-                    <div class="col-6"><input id="asB" class="form-control" placeholder="B" oninput="livePv('asB','pvB')"><div id="pvB" class="pv-box"></div></div>
-                    <div class="col-6"><input id="asC" class="form-control" placeholder="C" oninput="livePv('asC','pvC')"><div id="pvC" class="pv-box"></div></div>
-                    <div class="col-6"><input id="asD" class="form-control" placeholder="D" oninput="livePv('asD','pvD')"><div id="pvD" class="pv-box"></div></div>
-                    <div class="col-6"><input id="asE" class="form-control" placeholder="E" oninput="livePv('asE','pvE')"><div id="pvE" class="pv-box"></div></div>
-                    <div class="col-6"><input id="asK" class="form-control border-primary fw-bold" placeholder="Kunci: A/B/C/D/E"></div>
+                <label class="small fw-bold">Soal ($...$ untuk LaTeX)</label>
+                <div class="input-group mb-1">
+                    <textarea id="asQ" class="form-control" rows="2" oninput="livePv('asQ','pvQ')" placeholder="Ketik soal..."></textarea>
+                    <button class="btn btn-outline-primary" type="button" onclick="openMathEditor('asQ')">∑</button>
                 </div>
+                <div id="pvQ" class="pv-box mb-3"></div>
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="input-group">
+                            <input id="asA" class="form-control" placeholder="Opsi A" oninput="livePv('asA','pvA')">
+                            <button class="btn btn-outline-primary btn-sm" onclick="openMathEditor('asA')">∑</button>
+                        </div>
+                        <div id="pvA" class="pv-box"></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="input-group">
+                            <input id="asB" class="form-control" placeholder="Opsi B" oninput="livePv('asB','pvB')">
+                            <button class="btn btn-outline-primary btn-sm" onclick="openMathEditor('asB')">∑</button>
+                        </div>
+                        <div id="pvB" class="pv-box"></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="input-group">
+                            <input id="asC" class="form-control" placeholder="Opsi C" oninput="livePv('asC','pvC')">
+                            <button class="btn btn-outline-primary btn-sm" onclick="openMathEditor('asC')">∑</button>
+                        </div>
+                        <div id="pvC" class="pv-box"></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="input-group">
+                            <input id="asD" class="form-control" placeholder="Opsi D" oninput="livePv('asD','pvD')">
+                            <button class="btn btn-outline-primary btn-sm" onclick="openMathEditor('asD')">∑</button>
+                        </div>
+                        <div id="pvD" class="pv-box"></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="input-group">
+                            <input id="asE" class="form-control" placeholder="Opsi E" oninput="livePv('asE','pvE')">
+                            <button class="btn btn-outline-primary btn-sm" onclick="openMathEditor('asE')">∑</button>
+                        </div>
+                        <div id="pvE" class="pv-box"></div>
+                    </div>
+                    <div class="col-6">
+                        <input id="asK" class="form-control border-primary fw-bold" placeholder="Kunci: A/B/C/D/E">
+                    </div>
+                </div>
+
                 <button class="btn btn-primary w-100 mt-3 py-2 fw-bold" onclick="saveSoal()">SIMPAN SOAL</button>
             </div>
         </section>
     </div>
+
+    <div id="mathEditorPanel" class="hidden shadow-lg border-top p-3 bg-white" style="position:fixed; bottom:0; left:0; right:0; z-index:9999; border-radius: 20px 20px 0 0;">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold m-0 text-primary">Equation Editor</h6>
+                <button type="button" class="btn-close" onclick="closeMathEditor()"></button>
+            </div>
+            
+            <math-field id="mathInput" style="font-size: 1.5rem; width:100%; border:1px solid #0d6efd; border-radius:8px; padding:10px; background:white;"></math-field>
+            
+            <div class="row g-2 mt-2">
+                <div class="col-6"><button type="button" class="btn btn-secondary w-100" onclick="closeMathEditor()">Batal</button></div>
+                <div class="col-6"><button type="button" class="btn btn-primary w-100" onclick="insertMath()">Masukkan Rumus</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ... masukkan fungsi openMathEditor yang baru di sini ...
+    </script>
+</body>
 
     <div class="modal fade" id="modalConfirm" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 text-center border-0 shadow">
         <h5 class="fw-bold">Masuk Mode Ujian?</h5>
@@ -295,11 +380,50 @@
                 showSection('pageFinish');
             });
         }
+	
+	let targetInputId = ''; 
+
+function openMathEditor(id) {
+    targetInputId = id;
+    const panel = document.getElementById('mathEditorPanel');
+    const mf = document.getElementById('mathInput');
+    
+    mf.value = ""; 
+    mf.mathVirtualKeyboardPolicy = "manual"; 
+    
+    panel.classList.remove('hidden'); // Memunculkan panel
+    
+    setTimeout(() => {
+        mf.focus();
+        if (window.mathVirtualKeyboard) {
+            window.mathVirtualKeyboard.show();
+        }
+    }, 300);
+}
+
+function closeMathEditor() {
+    document.getElementById('mathEditorPanel').classList.add('hidden');
+    if (window.mathVirtualKeyboard) window.mathVirtualKeyboard.hide();
+}
+
+function insertMath() {
+    const mf = document.getElementById('mathInput');
+    const target = document.getElementById(targetInputId);
+    if(!mf.value) return;
+
+    const latex = ` $${mf.value}$ `;
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    target.value = target.value.slice(0, start) + latex + target.value.slice(end);
+    
+    const pvId = 'pv' + targetInputId.substring(2);
+    if(typeof livePv === "function") livePv(targetInputId, pvId);
+    
+    closeMathEditor();
+}
 
         function nextQ() { if(state.index < state.soal.length - 1) loadSoal(state.index + 1); }
         function prevQ() { if(state.index > 0) loadSoal(state.index - 1); }
     </script>
 </body>
-
 </html>
-
