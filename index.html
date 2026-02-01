@@ -193,13 +193,36 @@
             const token = document.getElementById('inToken').value;
             const res = await fetch(`${API}?action=loginSiswa&pass=${encodeURIComponent(token)}`);
             const d = await res.json();
+            
             if(d.status === 'success') {
-                state.user = { nama: document.getElementById('inNama').value, kelas: document.getElementById('selKelas').value, mapel: document.getElementById('selMapel').value, rombel: document.getElementById('selRombel').value };
+                state.user = { 
+                    nama: document.getElementById('inNama').value, 
+                    kelas: document.getElementById('selKelas').value, 
+                    mapel: document.getElementById('selMapel').value, 
+                    rombel: document.getElementById('selRombel').value 
+                };
+                
                 const sRes = await fetch(`${API}?action=getSoalUjian&mapel=${state.user.mapel}&kelas=${state.user.kelas}`);
                 const sData = await sRes.json();
-                if(sData.soal && sData.soal.length > 0) { state.soal = sData.soal; new bootstrap.Modal(document.getElementById('modalConfirm')).show(); }
-                else alert("Soal belum tersedia!");
-            } else alert("Token Salah!");
+                
+                if(sData.soal && sData.soal.length > 0) {
+                    // --- LOGIKA PENGACAKAN SOAL (FISHER-YATES SHUFFLE) ---
+                    let shuffledSoal = sData.soal;
+                    for (let i = shuffledSoal.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffledSoal[i], shuffledSoal[j]] = [shuffledSoal[j], shuffledSoal[i]];
+                    }
+                    
+                    state.soal = shuffledSoal; 
+                    // -----------------------------------------------------
+                    
+                    new bootstrap.Modal(document.getElementById('modalConfirm')).show();
+                } else {
+                    alert("Soal belum tersedia!");
+                }
+            } else {
+                alert("Token Salah!");
+            }
             document.getElementById('loading').classList.add('hidden');
         };
 
@@ -279,3 +302,4 @@
 </body>
 
 </html>
+
