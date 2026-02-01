@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBT System - Pro Edition</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { background: #f8fafc; font-family: sans-serif; user-select: none; }
+        .hidden { display: none !important; }
+        .cbt-header { background: #fff; border-bottom: 3px solid #0d6efd; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card-c { border: none; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .btn-opt { text-align: left; padding: 12px; margin-bottom: 8px; border: 1px solid #ddd; background: #fff; width: 100%; border-radius: 8px; }
+        .btn-opt.active { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+        .btn-nav { width: 100%; aspect-ratio: 1/1; border: 1px solid #ddd; background: #fff; border-radius: 6px; font-weight: bold; }
+        .btn-nav.active { background: #0d6efd !important; color: #fff !important; }
+        .btn-nav.filled { background: #198754; color: #fff; border: none; }
+        #loading { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; }
+        .pv-box { background: #fffdf0; border: 1px dashed #ffc107; padding: 8px; border-radius: 4px; margin-top: 5px; min-height: 35px; font-size: 0.9em; }
+        .btn-ready { padding: 20px 60px; font-size: 2rem; font-weight: 800; border-radius: 50px; transition: 0.3s; letter-spacing: 2px; box-shadow: 0 8px 15px rgba(13, 110, 253, 0.3); }
+    </style>
+</head>
+<body>
+
+    <div id="loading"><div class="spinner-border text-primary"></div><h6 class="mt-2">Memuat Sistem...</h6></div>
+
+    <header class="cbt-header d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <div id="logoTrigger" style="cursor:pointer; background:#0d6efd; color:#fff; padding:5px 10px; border-radius:5px" class="me-3 fw-bold">CBT</div>
+            <div><h6 class="m-0 fw-bold" id="txtSekolah">...</h6><small id="txtJudul" class="text-muted"></small></div>
+        </div>
+        <div id="userDisplay" class="hidden text-end small"><b id="dispNama"></b><br><span id="dispKelas"></span></div>
+    </header>
+
+    <div class="container">
+        <section id="pageReady" class="text-center py-5">
+            <div class="py-5">
+                <h1 class="fw-bold text-dark mb-4">TRY OUT FULLSCREEN</h1>
+                <p class="text-muted mb-5">Pastikan koneksi internet stabil, baterai perangkat mencukupi dan yang menjawaban dengan AI = GAY.</p>
+                <button class="btn btn-primary btn-ready" onclick="showSection('pageLogin')">READY</button>
+            </div>
+        </section>
+
+        <section id="pageLogin" class="hidden">
+            <div class="row justify-content-center"><div class="col-md-5 card card-c p-4">
+                <h5 class="fw-bold mb-3 text-center">Identitas Peserta</h5>
+                <form id="formLogin">
+                    <div class="mb-2"><label class="small">Mata Pelajaran</label><select class="form-select" id="selMapel" required></select></div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6"><label class="small">Kelas</label><select class="form-select" id="selKelas" required></select></div>
+                        <div class="col-6"><label class="small">Rombel</label><select class="form-select" id="selRombel" required></select></div>
+                    </div>
+                    <div class="mb-2"><label class="small">Nama Lengkap</label><input type="text" class="form-control" id="inNama" required></div>
+                    <div class="mb-3"><label class="small">Token</label><input type="text" class="form-control border-primary" id="inToken" required></div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2">MASUK KE UJIAN</button>
+                </form>
+            </div></div>
+        </section>
+
+        <section id="pageExam" class="hidden">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card card-c p-4 mb-3">
+                        <div class="d-flex justify-content-between mb-3"><span class="badge bg-primary">SOAL <span id="qNum">1</span></span><div class="fw-bold text-danger" id="timer">00:00</div></div>
+                        <div id="qText" class="fs-5 mb-4"></div>
+                        <div id="qOptions"></div>
+                        <div class="mt-4 d-flex justify-content-between"><button class="btn btn-sm btn-outline-secondary" onclick="prevQ()">Kembali</button><button class="btn btn-sm btn-primary" onclick="nextQ()">Lanjut</button></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-c p-3">
+                        <h6 class="small fw-bold">Navigasi</h6>
+                        <div id="nav" class="row g-2 row-cols-5 mb-3"></div>
+                        <button class="btn btn-success w-100 fw-bold" onclick="askFinish()">KIRIM JAWABAN</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pageFinish" class="hidden text-center py-5">
+            <div class="card card-c p-5">
+                <h3 class="text-success fw-bold">Selesai!</h3>
+                <p id="finishMsg">Jawaban Anda telah terkirim ke server.</p>
+                <button class="btn btn-primary" onclick="location.reload()">Beranda</button>
+            </div>
+        </section>
+
+        <section id="pageAdmin" class="hidden">
+            <div class="d-flex justify-content-between align-items-center mb-3"><h4 class="fw-bold m-0">Admin Panel</h4><button class="btn btn-danger btn-sm" onclick="location.reload()">Logout</button></div>
+            <div class="card card-c p-4">
+                <div class="row g-2 mb-3"><div class="col-6"><select id="asMapel" class="form-select"></select></div><div class="col-6"><select id="asKelas" class="form-select"></select></div></div>
+                <textarea id="asQ" class="form-control" rows="2" oninput="livePv('asQ','pvQ')" placeholder="Soal..."></textarea>
+                <div id="pvQ" class="pv-box"></div>
+                <div class="row g-2 mt-2">
+                    <div class="col-6"><input id="asA" class="form-control" placeholder="A" oninput="livePv('asA','pvA')"><div id="pvA" class="pv-box"></div></div>
+                    <div class="col-6"><input id="asB" class="form-control" placeholder="B" oninput="livePv('asB','pvB')"><div id="pvB" class="pv-box"></div></div>
+                    <div class="col-6"><input id="asC" class="form-control" placeholder="C" oninput="livePv('asC','pvC')"><div id="pvC" class="pv-box"></div></div>
+                    <div class="col-6"><input id="asD" class="form-control" placeholder="D" oninput="livePv('asD','pvD')"><div id="pvD" class="pv-box"></div></div>
+                    <div class="col-6"><input id="asE" class="form-control" placeholder="E" oninput="livePv('asE','pvE')"><div id="pvE" class="pv-box"></div></div>
+                    <div class="col-6"><input id="asK" class="form-control border-primary fw-bold" placeholder="Kunci: A/B/C/D/E"></div>
+                </div>
+                <button class="btn btn-primary w-100 mt-3 py-2 fw-bold" onclick="saveSoal()">SIMPAN SOAL</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="modal fade" id="modalConfirm" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 text-center border-0 shadow">
+        <h5 class="fw-bold">Masuk Mode Ujian?</h5>
+        <p class="small text-danger">Jangan keluar dari mode Layar Penuh atau ujian akan otomatis berakhir!</p>
+        <button class="btn btn-primary w-100 rounded-pill" onclick="startNow()">YA, SAYA MENGERTI</button>
+    </div></div></div>
+
+    <div class="modal fade" id="modalFinish" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 text-center border-0 shadow">
+        <h4 class="fw-bold text-primary">Kirim Jawaban?</h4>
+        <p>Pastikan semua soal telah terjawab dengan benar. Setelah dikirim, Anda tidak bisa mengubahnya lagi.</p>
+        <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-outline-secondary w-100 rounded-pill" data-bs-dismiss="modal">BELUM YAKIN</button>
+            <button class="btn btn-primary w-100 rounded-pill" onclick="confirmFinish()">YA, YAKIN</button>
+        </div>
+    </div></div></div>
+
+    <div class="modal fade" id="modalAdm" tabindex="-1"><div class="modal-dialog modal-sm modal-dialog-centered"><div class="modal-content p-3 border-0 shadow"><input type="password" id="pAdm" class="form-control mb-2" placeholder="Pass Admin"><button class="btn btn-primary w-100" onclick="login()">Login</button></div></div></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API = "https://script.google.com/macros/s/AKfycbxqWPT6f_zjjNKaPfwMz8P-VC3syiNPSg9AidrAtl1VdiApqHH0UcYVxSb8i9HmQzFU/exec";
+        let state = { soal: [], jawaban: {}, index: 0, user: {}, isExamActive: false };
+
+        window.onload = async () => {
+            const res = await fetch(API + "?action=getInitData");
+            const d = await res.json();
+            document.getElementById('txtSekolah').innerText = d.config.sekolah;
+            document.getElementById('txtJudul').innerText = d.config.judul;
+            fillSelect('selMapel', d.mapel); fillSelect('selKelas', d.kelas); fillSelect('selRombel', d.rombel);
+            fillSelect('asMapel', d.mapel); fillSelect('asKelas', d.kelas);
+            document.getElementById('loading').classList.add('hidden');
+            setupAdmin();
+            history.pushState(null, null, location.href);
+        };
+
+        window.onpopstate = function () {
+            if (state.isExamActive) {
+                history.pushState(null, null, location.href);
+                if (confirm("Yakin ingin keluar? Jawaban akan dikirim paksa!")) finish("Berhenti lewat navigasi browser.");
+            }
+        };
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && state.isExamActive) finish("Ujian otomatis berhenti karena keluar layar penuh!");
+        });
+
+        function fillSelect(id, data) {
+            const el = document.getElementById(id); el.innerHTML = '<option value="">-- Pilih --</option>';
+            data.forEach(v => el.innerHTML += `<option value="${v}">${v}</option>`);
+        }
+
+        function showSection(id) { document.querySelectorAll('section').forEach(s => s.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+
+        function livePv(inId, pvId) {
+            const pv = document.getElementById(pvId); pv.innerHTML = document.getElementById(inId).value;
+            if(window.MathJax) MathJax.typesetPromise([pv]);
+        }
+
+        function setupAdmin() {
+            let c = 0; document.getElementById('logoTrigger').onclick = () => { c++; if(c>=5){ c=0; new bootstrap.Modal(document.getElementById('modalAdm')).show(); }};
+        }
+        async function login() {
+            const p = document.getElementById('pAdm').value;
+            const r = await fetch(`${API}?action=loginAdmin&pass=${encodeURIComponent(p)}`);
+            const d = await r.json();
+            if(d.status === 'success') { bootstrap.Modal.getInstance(document.getElementById('modalAdm')).hide(); showSection('pageAdmin'); }
+            else alert("Password Salah!");
+        }
+
+        async function saveSoal() {
+            const payload = {
+                action: 'saveSoal', mapel: document.getElementById('asMapel').value, kelas: document.getElementById('asKelas').value,
+                pertanyaan: document.getElementById('asQ').value, a: document.getElementById('asA').value, b: document.getElementById('asB').value,
+                c: document.getElementById('asC').value, d: document.getElementById('asD').value, e: document.getElementById('asE').value, kunci: document.getElementById('asK').value
+            };
+            if(!payload.pertanyaan || !payload.kunci) return alert("Lengkapi data!");
+            document.getElementById('loading').classList.remove('hidden');
+            fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }).then(() => {
+                document.getElementById('loading').classList.add('hidden'); alert("Berhasil!");
+                ['asQ','asA','asB','asC','asD','asE','asK'].forEach(id => { document.getElementById(id).value = ''; const pv = document.getElementById('pv' + id.substring(2)); if(pv) pv.innerHTML = ''; });
+            });
+        }
+
+        document.getElementById('formLogin').onsubmit = async (e) => {
+            e.preventDefault();
+            document.getElementById('loading').classList.remove('hidden');
+            const token = document.getElementById('inToken').value;
+            const res = await fetch(`${API}?action=loginSiswa&pass=${encodeURIComponent(token)}`);
+            const d = await res.json();
+            if(d.status === 'success') {
+                state.user = { nama: document.getElementById('inNama').value, kelas: document.getElementById('selKelas').value, mapel: document.getElementById('selMapel').value, rombel: document.getElementById('selRombel').value };
+                const sRes = await fetch(`${API}?action=getSoalUjian&mapel=${state.user.mapel}&kelas=${state.user.kelas}`);
+                const sData = await sRes.json();
+                if(sData.soal && sData.soal.length > 0) { state.soal = sData.soal; new bootstrap.Modal(document.getElementById('modalConfirm')).show(); }
+                else alert("Soal belum tersedia!");
+            } else alert("Token Salah!");
+            document.getElementById('loading').classList.add('hidden');
+        };
+
+        function startNow() {
+            bootstrap.Modal.getInstance(document.getElementById('modalConfirm')).hide();
+            const el = document.documentElement;
+            if (el.requestFullscreen) el.requestFullscreen();
+            state.isExamActive = true;
+            showSection('pageExam');
+            document.getElementById('userDisplay').classList.remove('hidden');
+            document.getElementById('dispNama').innerText = state.user.nama;
+            document.getElementById('dispKelas').innerText = state.user.kelas;
+            loadSoal(0); renderNav(); startTimer(90);
+        }
+
+        function loadSoal(idx) {
+            state.index = idx; const s = state.soal[idx];
+            document.getElementById('qNum').innerText = idx + 1;
+            const q = document.getElementById('qText'); q.innerHTML = s.pertanyaan;
+            const o = document.getElementById('qOptions'); o.innerHTML = '';
+            ['A','B','C','D','E'].forEach((l, i) => {
+                if(!s.pilihan[i]) return;
+                const b = document.createElement('button');
+                b.className = `btn-opt ${state.jawaban[s.id] === l ? 'active' : ''}`;
+                b.innerHTML = `<b>${l}.</b> ${s.pilihan[i]}`;
+                b.onclick = () => { state.jawaban[s.id] = l; loadSoal(idx); renderNav(); };
+                o.appendChild(b);
+            });
+            MathJax.typesetPromise([q, o]);
+        }
+
+        function renderNav() {
+            const n = document.getElementById('nav'); n.innerHTML = '';
+            state.soal.forEach((s, i) => {
+                const b = document.createElement('div'); b.className = 'col';
+                b.innerHTML = `<button class="btn-nav ${i === state.index ? 'active' : ''} ${state.jawaban[s.id] ? 'filled' : ''}" onclick="loadSoal(${i})">${i+1}</button>`;
+                n.appendChild(b);
+            });
+        }
+
+        function startTimer(m) {
+            let s = m * 60;
+            const t = setInterval(() => {
+                if(!state.isExamActive) { clearInterval(t); return; }
+                let mi = Math.floor(s/60); let se = s%60;
+                document.getElementById('timer').innerText = `${mi}:${se<10?'0':''}${se}`;
+                if(s<=0) { clearInterval(t); finish("Waktu habis! Jawaban otomatis dikirim."); } s--;
+            }, 1000);
+        }
+
+        // FUNGSI BARU UNTUK TANYA SEBELUM FINISH
+        function askFinish() {
+            new bootstrap.Modal(document.getElementById('modalFinish')).show();
+        }
+
+        function confirmFinish() {
+            bootstrap.Modal.getInstance(document.getElementById('modalFinish')).hide();
+            finish();
+        }
+
+        async function finish(msg) {
+            if(!state.isExamActive) return;
+            state.isExamActive = false;
+            document.getElementById('loading').classList.remove('hidden');
+            const payload = { action: 'submitUjian', ...state.user, jawaban: JSON.stringify(state.jawaban) };
+            fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }).then(() => {
+                if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+                document.getElementById('loading').classList.add('hidden');
+                if(msg) document.getElementById('finishMsg').innerText = msg;
+                showSection('pageFinish');
+            });
+        }
+
+        function nextQ() { if(state.index < state.soal.length - 1) loadSoal(state.index + 1); }
+        function prevQ() { if(state.index > 0) loadSoal(state.index - 1); }
+    </script>
+</body>
+</html>
