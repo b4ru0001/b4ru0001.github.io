@@ -291,15 +291,18 @@
                 const sData = await sRes.json();
                 
                 if(sData.soal && sData.soal.length > 0) {
-                    // --- LOGIKA PENGACAKAN SOAL (FISHER-YATES SHUFFLE) ---
-                    let shuffledSoal = sData.soal;
-                    for (let i = shuffledSoal.length - 1; i > 0; i--) {
+                    // 1. Ambil semua soal dari server
+                    let rawSoal = sData.soal;
+
+                    // 2. Acak seluruh soal (Fisher-Yates Shuffle)
+                    for (let i = rawSoal.length - 1; i > 0; i--) {
                         const j = Math.floor(Math.random() * (i + 1));
-                        [shuffledSoal[i], shuffledSoal[j]] = [shuffledSoal[j], shuffledSoal[i]];
+                        [rawSoal[i], rawSoal[j]] = [rawSoal[j], rawSoal[i]];
                     }
                     
-                    state.soal = shuffledSoal; 
-                    // -----------------------------------------------------
+                    // 3. AMBIL HANYA 30 SOAL (SLICING)
+                    // Jika soal kurang dari 30, dia akan mengambil semua yang tersedia
+                    state.soal = rawSoal.slice(0, 30); 
                     
                     new bootstrap.Modal(document.getElementById('modalConfirm')).show();
                 } else {
@@ -427,5 +430,6 @@ function insertMath() {
     </script>
 </body>
 </html>
+
 
 
