@@ -300,9 +300,9 @@
                         [rawSoal[i], rawSoal[j]] = [rawSoal[j], rawSoal[i]];
                     }
                     
-                    // 3. AMBIL HANYA 30 SOAL (SLICING)
-                    // Jika soal kurang dari 30, dia akan mengambil semua yang tersedia
-                    state.soal = rawSoal.slice(0, 30); 
+                    // 3. AMBIL HANYA 35 SOAL (SLICING)
+                    // Jika soal kurang dari 35, dia akan mengambil semua yang tersedia
+                    state.soal = rawSoal.slice(0, 35); 
                     
                     new bootstrap.Modal(document.getElementById('modalConfirm')).show();
                 } else {
@@ -430,6 +430,7 @@ function insertMath() {
     </script>
 </body>
 </html>
+
 
 
 
